@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 
 from apps.graphs import make_graphs
+from apps.forms import mentor_add_form, mentor_edit_form, payment_add_form, payment_edit_form
 
 dpg.create_context()
 
@@ -19,16 +20,16 @@ def main():
                 make_graphs()
 
             with dpg.tab(label='Добавить ментора'):
-                dpg.add_text(default_value='В разработке...')
+                mentor_add_form()
 
             with dpg.tab(label='Добавить оплату'):
-                dpg.add_text(default_value='В разработке...')
+                payment_add_form()
 
             with dpg.tab(label='Все менторы'):
-                dpg.add_text(default_value='В разработке...')
+                mentor_edit_form()
 
             with dpg.tab(label='Все финансы'):
-                dpg.add_text(default_value='В разработке...')
+                payment_edit_form()
 
 
 if __name__ == '__main__':
