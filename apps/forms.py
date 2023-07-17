@@ -78,7 +78,6 @@ def mentor_edit_form():
                 dpg.add_button(label='Удалить', callback=mentor_delete_callback)
         with dpg.table_row():
             dpg.add_text('')
-    dpg.add_button(label='Test', callback=test_callback)
 
     with dpg.child_window(tag='mentors_window', border=False):
         set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), all_mentors)
