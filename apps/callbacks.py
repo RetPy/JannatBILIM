@@ -15,15 +15,20 @@ from utils.db import (add_mentor,
                       delete_by_id)
 
 
-def reset_table(tag, data):
+def set_table(table_tag, parent_tag, columns, data):
+    dpg.delete_item(table_tag)
+    with dpg.table(header_row=True, tag=table_tag, no_host_extendY=True, scrollY=True, parent=parent_tag,
+                   borders_outerH=True, borders_innerV=True, borders_innerH=True, borders_outerV=True):
+        for col in columns:
+            if col == 'id':
+                dpg.add_table_column(label='id', width_fixed=True)
+                continue
+            dpg.add_table_column(label=col)
 
-    count_i = 0
-    for i in dpg.get_item_children(tag)[1]:
-        count_j = 0
-        for j in dpg.get_item_children(i)[1]:
-            dpg.configure_item(j, default_value=f'{data[count_i][count_j]}')
-            count_j += 1
-        count_i += 1
+        for item in data:
+            with dpg.table_row():
+                for i in range(len(columns)):
+                    dpg.add_text(default_value=item[i])
 
 
 def mentor_add_callback(sender, data):
@@ -32,8 +37,8 @@ def mentor_add_callback(sender, data):
         dpg.configure_item('add_mentor_name', default_value='')
         dpg.configure_item('add_mentor_surname', default_value='')
         dpg.configure_item('add_mentor_message', default_value='Успешно создано!', color=(0, 255, 0))
+        set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         sleep(5)
-        reset_table('mentors_table', get_all_mentors())
         dpg.configure_item('add_mentor_message', default_value='Заполните поля для создания ментора',
                            color=(255, 255, 255))
     except:
@@ -52,7 +57,7 @@ def mentor_edit_callback(sender, data):
     name = dpg.get_value('edit_name')
     surname = dpg.get_value('edit_surname')
     edit_mentor(mentor_id, name, surname)
-    reset_table('mentors_table', get_all_mentors())
+    set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
     dpg.configure_item('edit_mentor_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
     dpg.configure_item('edit_mentor_message', default_value='Выберите ментора для редактирования',
@@ -60,14 +65,21 @@ def mentor_edit_callback(sender, data):
 
 
 def delete_ok(sender, data, user_data):
+    all_payments = []
+    for payment in get_all_payments():
+        payment = list(payment)
+        date = datetime.fromtimestamp(payment[-1])
+        payment[-1] = f'{date}'[:7]
+        all_payments.append(payment)
+
     dpg.configure_item(user_data['window_tag'], show=False)
     delete_by_id(user_data['table'], dpg.get_value(user_data['id_tag']))
-    sleep(0.5)
+
     match user_data['table']:
         case 'mentors':
-            reset_table(user_data['table_tag'], get_all_mentors())
+            set_table(user_data['table_tag'], 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         case 'payments':
-            reset_table(user_data['table_tag'], get_all_payments())
+            set_table(user_data['table_tag'], 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
 
 
 def delete_cancel(sender, data, user_data):
@@ -147,13 +159,15 @@ def payment_edit_callback(sender, data):
         dpg.configure_item('edit_payment_message', default_value='Введите id оплаты для редактирования',
                            color=(255, 255, 255))
         return None
+
     all_payments = []
-    for i in get_all_payments():
-        i = list(i)
-        date = f'{datetime.fromtimestamp(i[-1])}'[:7]
-        i[-1] = date
-        all_payments.append(i)
-    reset_table('payments_table', all_payments)
+    for payment in get_all_payments():
+        payment = list(payment)
+        date = datetime.fromtimestamp(payment[-1])
+        payment[-1] = f'{date}'[:7]
+        all_payments.append(payment)
+
+    set_table('payments_tag', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
     dpg.configure_item('edit_payment_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
     dpg.configure_item('edit_payment_message', default_value='Введите id оплаты для редактирования',

@@ -3,7 +3,8 @@ import dearpygui.dearpygui as dpg
 from datetime import datetime
 
 from utils.db import get_all_mentors, get_all_payments
-from apps.callbacks import (mentor_add_callback,
+from apps.callbacks import (set_table,
+                            mentor_add_callback,
                             mentor_choose_callback,
                             mentor_edit_callback,
                             mentor_delete_callback,
@@ -77,18 +78,10 @@ def mentor_edit_form():
                 dpg.add_button(label='Удалить', callback=mentor_delete_callback)
         with dpg.table_row():
             dpg.add_text('')
+    dpg.add_button(label='Test', callback=test_callback)
 
-    with dpg.table(header_row=True, tag='mentors_table', no_host_extendY=True, scrollY=True,
-                   borders_outerH=True, borders_innerV=True, borders_innerH=True, borders_outerV=True):
-        dpg.add_table_column(label='id', width_fixed=True)
-        dpg.add_table_column(label='Имя')
-        dpg.add_table_column(label='Фамилия')
-
-        for mentor in all_mentors:
-            with dpg.table_row():
-                dpg.add_text(default_value=mentor[0])
-                dpg.add_text(default_value=mentor[1])
-                dpg.add_text(default_value=mentor[2])
+    with dpg.child_window(tag='mentors_window', border=False):
+        set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), all_mentors)
 
 
 def payment_add_form():
@@ -121,8 +114,14 @@ def payment_add_form():
 
 
 def payment_edit_form():
-    all_payments = get_all_payments()
+    all_payments = []
     all_mentors = get_all_mentors()
+    for payment in get_all_payments():
+        payment = list(payment)
+        date = datetime.fromtimestamp(payment[-1])
+        payment[-1] = f'{date}'[:7]
+        all_payments.append(payment)
+
     with dpg.table(header_row=False):
         dpg.add_table_column()
         dpg.add_table_column()
@@ -161,19 +160,8 @@ def payment_edit_form():
         with dpg.table_row():
             dpg.add_text('')
 
-    with dpg.table(header_row=True, tag='payments_table', no_host_extendY=True, scrollY=True,
-                   borders_outerH=True, borders_innerV=True, borders_innerH=True, borders_outerV=True):
-        dpg.add_table_column(label='id', width_fixed=True)
-        dpg.add_table_column(label='Имя Ментора')
-        dpg.add_table_column(label='Сумма')
-        dpg.add_table_column(label='Дата')
-
-        for payment in all_payments:
-            with dpg.table_row():
-                dpg.add_text(default_value=payment[0])
-                dpg.add_text(default_value=payment[1])
-                dpg.add_text(default_value=payment[2])
-                dpg.add_text(default_value=f'{datetime.fromtimestamp(payment[3])}'[:7])
+    with dpg.child_window(tag='payments_window', border=False):
+        set_table('payments_tag', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
 
 
 if __name__ == '__main__':
