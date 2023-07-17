@@ -97,7 +97,8 @@ def payment_add_form():
         with dpg.table_row():
             dpg.add_text('')
             dpg.add_text('')
-            dpg.add_combo([i[1] for i in get_all_mentors()], default_value='Имя ментора', tag='add_payment_mentor_name', width=300)
+            dpg.add_combo([i[1] for i in get_all_mentors()], default_value='Имя ментора', tag='add_payment_mentor_name',
+                          width=300)
         with dpg.table_row():
             dpg.add_text('')
             dpg.add_text('')
@@ -160,7 +161,7 @@ def payment_edit_form():
             dpg.add_text('')
 
     with dpg.child_window(tag='payments_window', border=False):
-        set_table('payments_tag', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
+        set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
 
 
 if __name__ == '__main__':

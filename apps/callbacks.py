@@ -67,6 +67,9 @@ def mentor_edit_callback(sender, data):
 
 
 def delete_ok(sender, data, user_data):
+    dpg.configure_item(user_data['window_tag'], show=False)
+    delete_by_id(user_data['table'], dpg.get_value(user_data['id_tag']))
+
     all_payments = []
     for payment in get_all_payments():
         payment = list(payment)
@@ -74,19 +77,23 @@ def delete_ok(sender, data, user_data):
         payment[-1] = f'{date}'[:7]
         all_payments.append(payment)
 
-    dpg.configure_item(user_data['window_tag'], show=False)
-    delete_by_id(user_data['table'], dpg.get_value(user_data['id_tag']))
-
     match user_data['table']:
         case 'mentors':
-            dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
+            dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()], default_value='Ментор')
+            dpg.configure_item('edit_id', default_value='')
+            dpg.configure_item('edit_name', default_value='')
+            dpg.configure_item('edit_surname', default_value='')
             set_table(user_data['table_tag'], 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         case 'payments':
+            dpg.configure_item('edit_payment_id', default_value='')
+            dpg.configure_item('edit_payment_name', default_value='Имя ментора')
+            dpg.configure_item('edit_payment_price', default_value='')
+            dpg.configure_item('edit_payment_date', default_value='')
             set_table(user_data['table_tag'], 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
 
 
 def delete_cancel(sender, data, user_data):
-    dpg.configure_item('delete_mentor_modal', show=False)
+    dpg.configure_item(user_data['window_tag'], show=False)
 
 
 def mentor_delete_callback(sender, data):
@@ -98,18 +105,19 @@ def mentor_delete_callback(sender, data):
         try:
             dpg.get_item_info('delete_mentor_modal')
             dpg.configure_item('delete_mentor_modal', show=True)
-            dpg.configure_item('delete_message', default_value=f'Удалить ментора {mentor_name}?')
+            dpg.configure_item('delete_mentor_message', default_value=f'Удалить ментора {mentor_name}?')
         except:
             if not dpg.get_value('edit_id'):
                 return None
 
             with dpg.window(label='Удалить?', show=True, tag='delete_mentor_modal', modal=True, no_close=True):
-                dpg.add_text(default_value=f'Удалить ментора {mentor_name}?', tag='delete_message')
+                dpg.add_text(default_value=f'Удалить ментора {mentor_name}?', tag='delete_mentor_message')
                 with dpg.group(horizontal=True):
                     dpg.add_button(label="Ok", width=75, callback=delete_ok,
                                    user_data={'table': 'mentors', 'id_tag': 'edit_id', 'table_tag': 'mentors_table',
                                               'window_tag': 'delete_mentor_modal'})
-                    dpg.add_button(label="Cancel", width=75, callback=delete_cancel)
+                    dpg.add_button(label="Cancel", width=75, callback=delete_cancel,
+                                   user_data={'window_tag': 'delete_mentor_modal'})
 
     dpg.split_frame()
     width = dpg.get_item_width('delete_mentor_modal')
@@ -123,7 +131,19 @@ def payment_add_callback(sender, data):
         price = dpg.get_value('add_payment_price')
         date = list(map(int, dpg.get_value('add_payment_date').split('.')))
         add_payment(mentor_id, price, date[0], date[1])
+        dpg.configure_item('add_payment_mentor_name', default_value='Имя ментора')
+        dpg.configure_item('add_payment_price', default_value='')
+        dpg.configure_item('add_payment_date', default_value='')
         dpg.configure_item('add_payment_message', default_value='Успешно создано!', color=(0, 255, 0))
+
+        all_payments = []
+        for payment in get_all_payments():
+            payment = list(payment)
+            date = datetime.fromtimestamp(payment[-1])
+            payment[-1] = f'{date}'[:7]
+            all_payments.append(payment)
+
+        set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
         sleep(5)
         dpg.configure_item('add_payment_message', default_value='Заполните поля для создания оплаты',
                            color=(255, 255, 255))
@@ -170,7 +190,7 @@ def payment_edit_callback(sender, data):
         payment[-1] = f'{date}'[:7]
         all_payments.append(payment)
 
-    set_table('payments_tag', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
+    set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
     dpg.configure_item('edit_payment_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
     dpg.configure_item('edit_payment_message', default_value='Введите id оплаты для редактирования',
@@ -178,4 +198,29 @@ def payment_edit_callback(sender, data):
 
 
 def payment_delete_callback(sender, data):
-    pass
+    payment_id = dpg.get_value('edit_payment_id')
+
+    with dpg.mutex():
+        viewport_width = dpg.get_viewport_client_width()
+        viewport_height = dpg.get_viewport_client_height()
+        try:
+            dpg.get_item_info('delete_payment_modal')
+            dpg.configure_item('delete_payment_modal', show=True)
+            dpg.configure_item('delete_payment_message', default_value=f'Удалить оплату {payment_id}?')
+        except:
+            if not dpg.get_value('edit_payment_id'):
+                return None
+
+            with dpg.window(label='Удалить?', show=True, tag='delete_payment_modal', modal=True, no_close=True):
+                dpg.add_text(default_value=f'Удалить оплату {payment_id}?', tag='delete_payment_message')
+                with dpg.group(horizontal=True):
+                    dpg.add_button(label="Ok", width=75, callback=delete_ok,
+                                   user_data={'table': 'payments', 'id_tag': 'edit_payment_id',
+                                              'table_tag': 'payments_table', 'window_tag': 'delete_payment_modal'})
+                    dpg.add_button(label="Cancel", width=75, callback=delete_cancel,
+                                   user_data={'window_tag': 'delete_payment_modal'})
+
+    dpg.split_frame()
+    width = dpg.get_item_width('delete_payment_modal')
+    height = dpg.get_item_height('delete_payment_modal')
+    dpg.set_item_pos('delete_payment_modal', [viewport_width // 2 - width // 2, viewport_height // 2 - height // 2])
