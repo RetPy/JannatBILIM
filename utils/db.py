@@ -68,7 +68,7 @@ def edit_mentor(mentor_id, name, surname):
 def get_all_payments(group_by=False):
     if group_by:
         cursor.execute(
-            'SELECT date, SUM(price) FROM payments GROUP BY date;'
+            'SELECT date, SUM(price) FROM payments GROUP BY date ORDER BY date;'
         )
     else:
         cursor.execute(
@@ -78,14 +78,15 @@ def get_all_payments(group_by=False):
             ON payments.mentor_id = mentors.id
             ORDER BY payments.id;'''
         )
+    result = cursor.fetchall()
     if group_by:
         date = []
         price = []
-        for i in cursor.fetchall():
+        for i in result:
             date.append(i[0])
             price.append(i[1])
         return date, price
-    return cursor.fetchall()
+    return result
 
 
 def get_payment_by_id(payment_id):
@@ -103,7 +104,7 @@ def get_payment_by_id(payment_id):
 
 def get_mentors_payments(mentor_id):
     cursor.execute(
-        'SELECT date, SUM(price) FROM payments WHERE mentor_id=%s GROUP BY date;',
+        'SELECT date, SUM(price) FROM payments WHERE mentor_id=%s GROUP BY date ORDER BY date;',
         (mentor_id,)
     )
 
