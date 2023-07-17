@@ -56,7 +56,7 @@ def mentor_edit_form():
         with dpg.table_row():
             dpg.add_text('')
             dpg.add_text('')
-            dpg.add_combo([i[1] for i in all_mentors], tag='mentor_choose', width=300, default_value='Ментор')
+            dpg.add_combo(items=[i[1] for i in all_mentors], tag='mentor_choose', width=300, default_value='Ментор')
         with dpg.table_row():
             dpg.add_text('')
             dpg.add_text('')

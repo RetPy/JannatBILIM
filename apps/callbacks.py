@@ -37,6 +37,7 @@ def mentor_add_callback(sender, data):
         dpg.configure_item('add_mentor_name', default_value='')
         dpg.configure_item('add_mentor_surname', default_value='')
         dpg.configure_item('add_mentor_message', default_value='Успешно создано!', color=(0, 255, 0))
+        dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
         set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         sleep(5)
         dpg.configure_item('add_mentor_message', default_value='Заполните поля для создания ментора',
@@ -57,6 +58,7 @@ def mentor_edit_callback(sender, data):
     name = dpg.get_value('edit_name')
     surname = dpg.get_value('edit_surname')
     edit_mentor(mentor_id, name, surname)
+    dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
     set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
     dpg.configure_item('edit_mentor_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
@@ -77,6 +79,7 @@ def delete_ok(sender, data, user_data):
 
     match user_data['table']:
         case 'mentors':
+            dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
             set_table(user_data['table_tag'], 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         case 'payments':
             set_table(user_data['table_tag'], 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
