@@ -12,7 +12,8 @@ from utils.db import (add_mentor,
                       get_mentor_id_by_name,
                       get_mentor_by_name,
                       get_payment_by_id,
-                      delete_by_id)
+                      delete_by_id,
+                      get_mentors_payments)
 
 
 def set_table(table_tag, parent_tag, columns, data):
@@ -29,6 +30,25 @@ def set_table(table_tag, parent_tag, columns, data):
             with dpg.table_row():
                 for i in range(len(columns)):
                     dpg.add_text(default_value=item[i])
+
+
+def reset_graph():
+    for i in dpg.get_item_children('y_axis')[1]:
+        dpg.delete_item(i)
+
+    all_payments = get_all_payments(group_by=True)
+    dpg.add_shade_series(all_payments[0], all_payments[1], label="Весь", parent="y_axis", tag='all_payments')
+
+    dpg.bind_item_theme('all_payments', 'all_payments_theme')
+
+    for mentor in get_all_mentors():
+        data = get_mentors_payments(mentor[0])
+        if bool(data[0]) is False or bool(data[1]) is False:
+            continue
+        dpg.add_shade_series(data[0], data[1], label=f'{mentor[0]}.{mentor[1]}', parent='y_axis',
+                             tag=f'{mentor[1]}_series')
+
+        dpg.bind_item_theme(f'{mentor[1]}_series', f'{mentor[1]}_theme')
 
 
 def mentor_add_callback(sender, data):
@@ -84,12 +104,14 @@ def delete_ok(sender, data, user_data):
             dpg.configure_item('edit_name', default_value='')
             dpg.configure_item('edit_surname', default_value='')
             set_table(user_data['table_tag'], 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
+            reset_graph()
         case 'payments':
             dpg.configure_item('edit_payment_id', default_value='')
             dpg.configure_item('edit_payment_name', default_value='Имя ментора')
             dpg.configure_item('edit_payment_price', default_value='')
             dpg.configure_item('edit_payment_date', default_value='')
             set_table(user_data['table_tag'], 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
+            reset_graph()
 
 
 def delete_cancel(sender, data, user_data):
@@ -144,6 +166,7 @@ def payment_add_callback(sender, data):
             all_payments.append(payment)
 
         set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
+        reset_graph()
         sleep(5)
         dpg.configure_item('add_payment_message', default_value='Заполните поля для создания оплаты',
                            color=(255, 255, 255))
@@ -191,6 +214,7 @@ def payment_edit_callback(sender, data):
         all_payments.append(payment)
 
     set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
+    reset_graph()
     dpg.configure_item('edit_payment_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
     dpg.configure_item('edit_payment_message', default_value='Введите id оплаты для редактирования',
