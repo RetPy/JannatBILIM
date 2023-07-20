@@ -57,7 +57,10 @@ def mentor_add_callback(sender, data):
         dpg.configure_item('add_mentor_name', default_value='')
         dpg.configure_item('add_mentor_surname', default_value='')
         dpg.configure_item('add_mentor_message', default_value='Успешно создано!', color=(0, 255, 0))
-        dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
+        dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()], default_value='Ментор')
+        dpg.configure_item('add_payment_mentor_name', items=[i[1] for i in get_all_mentors()],
+                           default_value='Имя ментора')
+        dpg.configure_item('edit_payment_name', items=[i[1] for i in get_all_mentors()], default_value='Имя ментора')
         set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
         sleep(5)
         dpg.configure_item('add_mentor_message', default_value='Заполните поля для создания ментора',
@@ -79,7 +82,11 @@ def mentor_edit_callback(sender, data):
     surname = dpg.get_value('edit_surname')
     edit_mentor(mentor_id, name, surname)
     dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()])
+    dpg.configure_item('add_payment_mentor_name', items=[i[1] for i in get_all_mentors()],
+                       default_value='Имя ментора')
+    dpg.configure_item('edit_payment_name', items=[i[1] for i in get_all_mentors()], default_value='Имя ментора')
     set_table('mentors_table', 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
+    reset_graph()
     dpg.configure_item('edit_mentor_message', default_value='Успешно обновлено!', color=(0, 255, 0))
     sleep(5)
     dpg.configure_item('edit_mentor_message', default_value='Выберите ментора для редактирования',
@@ -100,12 +107,22 @@ def delete_ok(sender, data, user_data):
     match user_data['table']:
         case 'mentors':
             dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()], default_value='Ментор')
+            dpg.configure_item('add_payment_mentor_name', items=[i[1] for i in get_all_mentors()],
+                               default_value='Имя ментора')
+            dpg.configure_item('edit_payment_name', items=[i[1] for i in get_all_mentors()],
+                               default_value='Имя ментора')
             dpg.configure_item('edit_id', default_value='')
             dpg.configure_item('edit_name', default_value='')
             dpg.configure_item('edit_surname', default_value='')
             set_table(user_data['table_tag'], 'mentors_window', ('id', 'Имя', 'Фамилия'), get_all_mentors())
+            set_table('payments_table', 'payments_window', ('id', 'Имя Ментора', 'Сумма', 'Дата'), all_payments)
             reset_graph()
         case 'payments':
+            dpg.configure_item('mentor_choose', items=[i[1] for i in get_all_mentors()], default_value='Ментор')
+            dpg.configure_item('add_payment_mentor_name', items=[i[1] for i in get_all_mentors()],
+                               default_value='Имя ментора')
+            dpg.configure_item('edit_payment_name', items=[i[1] for i in get_all_mentors()],
+                               default_value='Имя ментора')
             dpg.configure_item('edit_payment_id', default_value='')
             dpg.configure_item('edit_payment_name', default_value='Имя ментора')
             dpg.configure_item('edit_payment_price', default_value='')
