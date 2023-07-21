@@ -1,17 +1,13 @@
 from datetime import datetime
+import sqlite3
 
-import psycopg2
-from psycopg2.extensions import AsIs
-
-connection = psycopg2.connect('dbname=dbname user=user')
+connection = sqlite3.connect('jannat_bilim.sqlite', check_same_thread=False)
 cursor = connection.cursor()
 
 
 def delete_by_id(table_name, id_):
-    cursor.execute(
-        'DELETE FROM %s WHERE id=%s',
-        (AsIs(table_name), id_,)
-    )
+    sql = f'DELETE FROM {table_name} WHERE id={id_}'
+    cursor.execute(sql)
     connection.commit()
 
 
@@ -29,7 +25,7 @@ def get_all_mentors():
 def get_mentor_id_by_name(name: str):
     try:
         cursor.execute(
-            'SELECT id FROM mentors WHERE name=%s',
+            'SELECT id FROM mentors WHERE name=?',
             (name,)
         )
         return cursor.fetchone()[0]
@@ -40,7 +36,7 @@ def get_mentor_id_by_name(name: str):
 def get_mentor_by_name(name: str):
     try:
         cursor.execute(
-            'SELECT * FROM mentors WHERE name=%s',
+            'SELECT * FROM mentors WHERE name=?',
             (name,)
         )
         return cursor.fetchone()
@@ -50,16 +46,15 @@ def get_mentor_by_name(name: str):
 
 def add_mentor(name=None, surname=None):
     cursor.execute(
-        'INSERT INTO mentors (name, surname) VALUES (%s, %s)',
+        'INSERT INTO mentors (name, surname) VALUES (?, ?)',
         (name, surname)
     )
-
     connection.commit()
 
 
 def edit_mentor(mentor_id, name, surname):
     cursor.execute(
-        'UPDATE mentors SET name=%s, surname=%s WHERE id=%s',
+        'UPDATE mentors SET name=?, surname=? WHERE id=?',
         (name, surname, mentor_id)
     )
     connection.commit()
@@ -95,7 +90,7 @@ def get_payment_by_id(payment_id):
         FROM payments
         JOIN mentors
         ON payments.mentor_id = mentors.id
-        WHERE payments.id=%s;''',
+        WHERE payments.id=?;''',
         (payment_id,)
     )
     result = cursor.fetchone()
@@ -104,7 +99,7 @@ def get_payment_by_id(payment_id):
 
 def get_mentors_payments(mentor_id):
     cursor.execute(
-        'SELECT date, SUM(price) FROM payments WHERE mentor_id=%s GROUP BY date ORDER BY date;',
+        'SELECT date, SUM(price) FROM payments WHERE mentor_id=? GROUP BY date ORDER BY date;',
         (mentor_id,)
     )
 
@@ -118,7 +113,7 @@ def get_mentors_payments(mentor_id):
 
 def add_payment(mentor_id: int, price: int, year: int, month: int):
     cursor.execute(
-        'INSERT INTO payments (mentor_id, price, date) VALUES (%s, %s, %s);',
+        'INSERT INTO payments (mentor_id, price, date) VALUES (?, ?, ?);',
         (mentor_id, price, datetime.timestamp(datetime(year, month, 1)))
     )
     connection.commit()
@@ -127,15 +122,18 @@ def add_payment(mentor_id: int, price: int, year: int, month: int):
 
 def edit_payment(payment_id, mentor_id, price, year, month):
     cursor.execute(
-        'UPDATE payments SET mentor_id=%s, price=%s, date=%s WHERE id=%s',
+        'UPDATE payments SET mentor_id=?, price=?, date=? WHERE id=?',
         (mentor_id, price, datetime.timestamp(datetime(year, month, 1)), payment_id)
     )
     connection.commit()
 
 
 if __name__ == '__main__':
-    print(get_all_mentors())
-    print(get_all_payments())
-    print(get_mentors_payments(1))
-    print(get_mentor_id_by_name('Гульнара'))
-    print(get_payment_by_id(17))
+    pass
+    # add_mentor('test', 'test')
+    # delete_by_id('mentors', 22)
+    # print(get_all_mentors())
+    # print(get_all_payments(group_by=True))
+    # print(get_mentors_payments(1))
+    # print(get_mentor_id_by_name('Гульнара'))
+    # print(get_payment_by_id(17))
